@@ -1,41 +1,66 @@
 import "package:flutter/material.dart";
 
 void main(){
-	runApp(MaterialApp(home:Page1()));
+	runApp(MaterialApp(home:MainPage()));
 }
 
-class Page1 extends StatefulWidget{
+class MainPage extends StatefulWidget{
+	MainPage({super.key});
+
+	State<MainPage> createState(){
+		return MainPageState();
+	}
+}
+
+class MainPageState extends State<MainPage>{
+	final pages = [
+		Page1(),
+		Page2()
+	];
+
+	int pageIndex = 0;
+	
+	@override
+	Widget build(BuildContext context){
+		return Scaffold(
+			appBar: AppBar(title: const Text("Exo1"), elevation:15),
+			body: pages[pageIndex],
+			bottomNavigationBar: NavigationBar(
+				selectedIndex: pageIndex,
+				onDestinationSelected: (int index){
+					setState((){
+						pageIndex = index;
+					});
+				},
+				destinations:[
+					NavigationDestination(
+						icon: Icon(Icons.camera),
+						label: "Page 1"
+					),
+					NavigationDestination(
+						icon: Icon(Icons.backpack),
+						label: "Page 2"
+					)
+				]
+			)
+		);
+	}
+}
+
+class Page1 extends StatelessWidget{
 	Page1({super.key});
 
-	State<Page1> createState(){
-		return Page1State();
-	}
-}
-
-class Page1State extends State<Page1>{	
 	@override
-	Widget build(PageContext context){
-		return Scaffold(
-			appBar: AppBar(title: const Text("Page1"), elevation:15),
-			body: Center(child: Text("Corps de la page 1"),
-		)
+	Widget build(BuildContext context){
+		return Center(child: Text("Page 1"));
 	}
 }
 
-class Page2 extends StatefulWidget{
+class Page2 extends StatelessWidget{
 	Page2({super.key});
 
-	State<Page2> createState(){
-		return Page2State();
-	}
-}
-
-class Page2State extends State<Page1>{	
 	@override
-	Widget build(PageContext context){
-		return Scaffold(
-			appBar: AppBar(title: const Text("Page2"), elevation:15),
-			body: Center(child: Text("Corps de la page 2"),
-		)
+	Widget build(BuildContext context){
+		return Center(child: Text("Page 2"));
 	}
 }
