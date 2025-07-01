@@ -1,41 +1,53 @@
 import "package:flutter/material.dart";
+import "package:file_picker/file_picker.dart";
+import 'dart:io';
+import 'package:path/path.dart' as path;
 
 void main(){
-	runApp(MaterialApp(home:Page1()));
+	runApp(MaterialApp(home:MainPage()));
 }
 
-class Page1 extends StatefulWidget{
-	Page1({super.key});
+class MainPage extends StatefulWidget{
+	MainPage({super.key});
 
-	State<Page1> createState(){
-		return Page1State();
+	State<MainPage> createState(){
+		return MainPageState();
 	}
 }
 
-class Page1State extends State<Page1>{	
+class MainPageState extends State<MainPage>{
+	List<File> fichiers = [];
+
 	@override
-	Widget build(PageContext context){
+	Widget build(BuildContext context){
 		return Scaffold(
-			appBar: AppBar(title: const Text("Page1"), elevation:15),
-			body: Center(child: Text("Corps de la page 1"),
-		)
-	}
-}
-
-class Page2 extends StatefulWidget{
-	Page2({super.key});
-
-	State<Page2> createState(){
-		return Page2State();
-	}
-}
-
-class Page2State extends State<Page1>{	
-	@override
-	Widget build(PageContext context){
-		return Scaffold(
-			appBar: AppBar(title: const Text("Page2"), elevation:15),
-			body: Center(child: Text("Corps de la page 2"),
-		)
+			appBar: AppBar(title: const Text("Fichiers sélectionnés"), elevation: 15),
+			body:ListView.builder(
+				itemCount: fichiers.length,
+				itemBuilder: (context, index){
+					final file = fichiers[index];
+					final filename = path.basename(file.path);
+					return ListTile(
+						title: Text(filename),
+						leading: Icon(Icons.picture_as_pdf, color: Colors.red),
+						onTap: (){
+							print("cliqué");
+						}
+					);
+				},
+			),
+			floatingActionButton: FloatingActionButton(
+				onPressed: ()async{
+					FilePickerResult? result = await FilePicker.platform.pickFiles(allowMultiple: true, type:FileType.custom, allowedExtensions: ['pdf'],);
+					setState(() {
+						if(result != null){
+							List<File> files = result.paths.map((path) => File(path!)).toList();
+							fichiers = files;
+						}
+					});
+				},
+				child: Icon(Icons.add)
+			)
+		);
 	}
 }
