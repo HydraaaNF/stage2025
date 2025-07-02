@@ -1,41 +1,136 @@
 import "package:flutter/material.dart";
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main(){
-	runApp(MaterialApp(home:Page1()));
+	runApp(MyApp());
 }
 
-class Page1 extends StatefulWidget{
-	Page1({super.key});
+class MyApp extends StatelessWidget{
+	MyApp({super.key});
 
-	State<Page1> createState(){
-		return Page1State();
-	}
-}
-
-class Page1State extends State<Page1>{	
 	@override
-	Widget build(PageContext context){
-		return Scaffold(
-			appBar: AppBar(title: const Text("Page1"), elevation:15),
-			body: Center(child: Text("Corps de la page 1"),
-		)
+	Widget build(BuildContext context){
+		return MultiProvider(providers: [
+				ChangeNotifierProvider(create: (context) => ThemeProvider())
+			],
+			child: HomePage()
+		);
 	}
 }
 
-class Page2 extends StatefulWidget{
-	Page2({super.key});
-
-	State<Page2> createState(){
-		return Page2State();
+class HomePage extends StatefulWidget{
+	HomePage({super.key});
+	
+	State<HomePage> createState(){
+		return HomePageState();
 	}
 }
 
-class Page2State extends State<Page1>{	
+class HomePageState extends State<HomePage>{
+
+	bool settings = false;
+
+	Future<bool> getBrightMode()async{
+		final prefs = await SharedPreferences.getInstance();
+		bool? dm = prefs.getBool("darkmode");
+		if(dm != null){
+			return dm;
+		}
+		return false;
+	}
+
 	@override
-	Widget build(PageContext context){
-		return Scaffold(
-			appBar: AppBar(title: const Text("Page2"), elevation:15),
-			body: Center(child: Text("Corps de la page 2"),
-		)
+	Widget build(BuildContext context){
+		getBrightMode().then((dm) => context.read<ThemeProvider>().setMode(dm));
+		return MaterialApp(
+					home: Scaffold(
+						appBar: AppBar(title: const Text("...")),
+						body:settings ? Settings() : ClassicPage()
+						,
+						floatingActionButton: FloatingActionButton(
+								onPressed: (){
+									setState(() {
+										settings = !settings;
+									});
+								},
+								child: Icon(settings ? Icons.arrow_back : Icons.settings)
+						),
+					),
+					theme: ThemeData(
+						brightness: Brightness.dark,
+						scaffoldBackgroundColor: Colors.red,
+						primaryColor: Colors.orange
+					),
+					darkTheme: ThemeData(
+						brightness: Brightness.dark,
+						scaffoldBackgroundColor: Colors.black,
+						primaryColor: Colors.deepOrangeAccent
+					),
+					themeMode: context.watch<ThemeProvider>().darkmode ? ThemeMode.dark : ThemeMode.light,
+				);
+	}
+}
+
+class ClassicPage extends StatefulWidget{
+	ClassicPage({super.key});
+
+	State<ClassicPage> createState(){
+		return ClassicPageState();
+	}
+}
+
+class ClassicPageState extends State<ClassicPage>{
+
+	@override
+	Widget build(BuildContext context){
+		return Center(child: Text("text random"),);
+	}
+}
+
+class Settings extends StatefulWidget{
+	Settings({super.key});
+
+	State<Settings> createState(){
+		return SettingsState();
+	}
+}
+
+class SettingsState extends State<Settings>{
+
+	void setBrightMode(darkmode)async{
+		final prefs = await SharedPreferences.getInstance();
+		prefs.setBool("darkmode", darkmode);
+	}
+
+	@override
+	Widget build(BuildContext context){
+		return Center(
+				child: IconButton(
+						onPressed: ()async{
+							context.read<ThemeProvider>().switchMode();
+							setBrightMode(context.read<ThemeProvider>().darkmode);
+						},
+						tooltip: "Changer le thème",
+						icon: Icon(context.watch<ThemeProvider>().darkmode ? Icons.dark_mode : Icons.light_mode)
+				)
+		);
+	}
+}
+
+class ThemeProvider extends ChangeNotifier{
+	bool darkmode;
+	ThemeProvider({this.darkmode = false});
+
+	void switchMode()async{
+		darkmode = !darkmode;
+		notifyListeners();
+	}
+
+	void setMode(mode)async{
+		if(mode != darkmode){
+			darkmode = mode;
+			notifyListeners();
+		}
 	}
 }
